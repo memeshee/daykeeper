@@ -6,38 +6,49 @@ step, and carries `@NEARProtocol` + `#NEARHackathon`.
 
 ---
 
-A treasury shared by strangers normally needs a committee. We replaced the committee with a clock.
+A shared pot of money needs someone to decide who gets it. So it ends up with a committee — and
+the committee keeps custody.
 
-Daykeeper: one public NEAR treasury. Every round, the right to run it for a day goes to the
-highest bidder — and the contract hands that stranger a key that can give money away and speak
-as the treasury, but can never take a single yocto.
+Daykeeper sells the decision instead. Every round, the right to run the treasury for one day goes
+to the highest bidder, and the contract hands that stranger two keys on its own account: one can
+give, one can speak. Neither can take, and both stop existing when the day does.
 
-The keeper doesn't have to be trusted:
+You bid 0.2 NEAR → you may hand out 1.0 NEAR today, to anyone but yourself.
+That gap is the whole product.
 
-• one grant per day, capped by parameters fixed at launch — no method can raise them
-• the key is a function-call key, so it cannot attach NEAR: the pool is out of reach
-• the key dies at the round deadline because every method checks block_timestamp. No cron, no admin
+Why it actually holds:
 
-In this clip a stranger who has never held NEAR buys the seat, posts as the treasury, funds
-someone who has never touched the app — then tries to drain the pool and the chain refuses, on camera.
+· a function-call key cannot attach NEAR, so the pool is out of reach by protocol rule, not by
+  promise
+· one grant per day, at a size fixed when the contract was deployed — no method can raise it
+· the key dies at the deadline because every privileged method checks block_timestamp. No cron,
+  no admin, no sweeper to trust
 
-Live on testnet: https://daykeeper-tau.vercel.app
-Code: https://github.com/PhiBao/daykeeper
+Anyone can ask the treasury for money. Posting an ask costs 0.01 NEAR and that fee goes into the
+pool it is asking. The keeper answers one ask a day, and the grant records which ask it answered.
+
+Try it in a browser, nothing to install: mint your own keys, take a funded testnet account, bid,
+ring the bell, speak as the treasury — then press "send the pool to myself" and watch the chain
+refuse you in its own words.
+
+https://daykeeper-tau.vercel.app/act
+https://github.com/PhiBao/daykeeper
 
 Built at NEAR HACKATHON @NEARProtocol #NEARHackathon @NearBuilders
 
-Question for builders: if you held the seat for one day, what would you fund first?
+If you held the seat for one day, what would you fund?
 
 ---
 
 ## Attach
 
-- the demo video (`docs/demo.mp4` when recorded) or the screenshots in `docs/`
+- the console screenshot (`docs/shot-console.png`) and the page (`docs/shot-home.png`), or the
+  demo video once recorded
 - keep the hosted demo up past 18 Nov (rule Q-012)
 
 ## Before posting
 
-- [ ] the live URL answers 200 and shows the clock
-- [ ] the repo is public
+- [ ] `node scripts/verify.mjs` exits 0
+- [ ] the live URL answers 200 and the console reaches "the seat is yours"
 - [ ] the post carries `@NEARProtocol` and `#NEARHackathon`
 - [ ] copy the post URL into the submission payload (`demoUrl`)

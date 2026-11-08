@@ -84,6 +84,7 @@ node scripts/grant.mjs .keeper-grant-dk-alice.testnet --ask 1 "…"
 node scripts/refuse.mjs .keeper-grant-dk-alice.testnet .keeper-voice-dk-alice.testnet
 node scripts/demo.mjs                                   # the whole story; exits non-zero on any deviation
 node scripts/keeper-agent.mjs                           # a keeper that is not a person
+node scripts/verify.mjs                                 # 13 invariant checks against the live chain; exit 0
 ```
 
 ## Architecture
@@ -115,6 +116,9 @@ and can sign in the browser.
 
 ## Verification
 
+- `node scripts/verify.mjs` → **13 checks against the live chain**, exit 0. Re-reads the
+  contract, the account's installed key scopes and the whole grant history, and fails if any
+  claim in this README does not hold.
 - `cargo test --target x86_64-unknown-linux-gnu` → **18 tests**, each refusal asserted verbatim.
 - `node scripts/demo.mjs` → **exit 0**, and prints a linked transaction for every claim. If any
   expected refusal is not refused, or a key is not installed, or the grant moves the wrong
