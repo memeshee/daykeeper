@@ -163,7 +163,7 @@ log(`## 5. The control run — five things a keeper must not be able to do`);
     ["grant key calls donate", "only the scoped method name is allowed", () => call({ signerId: CONTRACT, secretKey: grantKey, method: "donate", args: {}, deposit: 1n, gas: 10n * 10n ** 12n })],
     [
       "outsider calls grant",
-      "the predecessor is not the keeper",
+      "the signer key is not the keeper's grant key",
       () => {
         const c = credentials(chen);
         return call({ signerId: chen, secretKey: c.secret, method: "grant", args: { recipient: outsider, memo: "no" }, gas: 60n * 10n ** 12n });

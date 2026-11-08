@@ -46,3 +46,6 @@ Grants left this round: 0. Pool is now 3.04 NEAR.
 **5/5 refused by the chain.**
 
 ## 6. The day ends
+The bell again → https://testnet.nearblocks.io/txns/6LX6oL4UZDFLSzfLccM82staLpjfKgZKSrdeWNqxraXf
+Alice's keys are deleted from the treasury. Keeper now: vacant · keys: none / none
+Pool: 3.04 NEAR · keepers so far: 1 · grants: 1 · words: 1

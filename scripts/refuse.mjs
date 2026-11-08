@@ -15,14 +15,29 @@ const voiceKey = readFileSync(voiceFile, "utf8").trim();
 
 const attempts = [];
 
+/** The SDK returns "{}" for some ActionErrors, so dig the real sentence out of the kind. */
+function readable(e) {
+  const candidates = [
+    String(e.message ?? ""),
+    JSON.stringify(e.kind ?? null),
+    String(e ?? ""),
+  ];
+  for (const c of candidates) {
+    const m =
+      c.match(/"(?:ExecutionError|message)":"([^"]{8,200})"/) ||
+      c.match(/"([A-Z][^"]{15,200}(?:action|key|allowed|access)[^"]{0,120})"/);
+    if (m) return m[1];
+    if (c && c.length > 8 && !c.startsWith("{}")) return c.slice(0, 200);
+  }
+  return "refused (no message)";
+}
+
 async function attempt(name, why, fn) {
   try {
     const res = await fn();
     attempts.push({ name, why, refused: false, detail: `NOT REFUSED — tx ${res?.hash ?? ""}` });
   } catch (e) {
-    const msg = String(e.message ?? e);
-    const kind = e.kind || (e.cause && e.cause.name) || "error";
-    attempts.push({ name, why, refused: true, detail: `${kind}: ${msg}`.slice(0, 200) });
+    attempts.push({ name, why, refused: true, detail: readable(e) });
   }
 }
 
@@ -72,7 +87,7 @@ await attempt("grant key calls donate", "only the scoped method name is allowed"
 
 // 5. someone who is not the keeper tries to grant
 const outsider = credentials("dk-chen.testnet");
-await attempt("outsider calls grant", "predecessor is not the keeper", () =>
+await attempt("outsider calls grant", "the signer key is not the keeper's grant key", () =>
   call({
     signerId: "dk-chen.testnet",
     secretKey: outsider.secret,
