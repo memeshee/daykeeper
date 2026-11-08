@@ -36,10 +36,11 @@ export function KeyBox({ state }: { state: State }) {
             ✓
           </span>
           <span>
-            <b className="font-medium">post on near.social as the treasury</b>
+            <b className="font-medium">speak as the treasury</b>
             <span className="block text-ink-faint">
-              scoped to <code className="text-ink-soft">social.__fastdata_kv</code>, gas paid from
-              the key&apos;s allowance — the keeper needs no NEAR
+              scoped to <code className="text-ink-soft">say</code>, gas paid from the key&apos;s
+              allowance — the keeper needs no NEAR. On mainnet the same key shape points at
+              near.social&apos;s <code className="text-ink-soft">social</code> account instead.
             </span>
           </span>
         </li>
