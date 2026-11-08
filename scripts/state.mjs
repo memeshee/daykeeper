@@ -14,7 +14,17 @@ for (const k of await view(CONTRACT, "get_keepers")) {
 }
 console.log("grants:");
 for (const g of await view(CONTRACT, "get_grants")) {
-  console.log(`  ${g.keeper} → ${g.recipient} ${fmtNear(g.amount_yocto)} NEAR — "${g.memo}"`);
+  const ask = g.ask_id === null || g.ask_id === undefined ? "" : ` answering ask #${g.ask_id}`;
+  console.log(`  ${g.keeper} → ${g.recipient} ${fmtNear(g.amount_yocto)} NEAR${ask} — "${g.memo}"`);
+}
+console.log("asks:");
+for (const a of await view(CONTRACT, "get_asks")) {
+  const st = a.funded_by ? `funded by ${a.funded_by}` : "open";
+  console.log(`  #${a.id} ${a.asker} wants ${fmtNear(a.want_yocto)} NEAR — "${a.text}" (${st})`);
+}
+console.log("donors:");
+for (const d of await view(CONTRACT, "get_donors")) {
+  console.log(`  ${d.account} ${fmtNear(d.total_yocto)} NEAR`);
 }
 console.log("voices:");
 for (const v of await view(CONTRACT, "get_voices")) {

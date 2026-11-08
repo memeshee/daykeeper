@@ -16,6 +16,7 @@ const instrument = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://daykeeper-tau.vercel.app"),
   title: "Daykeeper — a public treasury with a new keeper every day",
   description:
     "One shared treasury. One key. A new keeper every day, chosen by continuous auction. The key can speak and give. It can never take.",
@@ -24,6 +25,13 @@ export const metadata: Metadata = {
     description:
       "Buy the right to give a shared treasury away for one day. The chain stops you from keeping any of it.",
     type: "website",
+    siteName: "Daykeeper",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Daykeeper",
+    description:
+      "One shared treasury, a new keeper every day, and a key that can give and speak but never take.",
   },
 };
 

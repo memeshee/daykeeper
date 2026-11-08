@@ -1,15 +1,18 @@
 "use client";
 
+import Link from "next/link";
+
 import { Clock } from "@/components/clock";
 import { KeyBox } from "@/components/keybox";
 import { Ledger } from "@/components/ledger";
+import { Asks, Donors } from "@/components/queue";
 import { Seat } from "@/components/seat";
 import { Voices } from "@/components/voices";
 import { CONTRACT, NETWORK, explorerAccount, formatNear, short } from "@/lib/chain";
 import { useChain } from "@/lib/use-chain";
 
 export default function Home() {
-  const { state, keepers, grants, voices, error, offsetMs } = useChain();
+  const { state, keepers, grants, voices, asks, donors, error, offsetMs } = useChain();
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[1180px] px-5 pb-16 sm:px-8">
@@ -66,12 +69,17 @@ export default function Home() {
                   awaiting={state.awaiting_settle}
                 />
               </div>
-              <p className="mt-4 max-w-[46ch] text-[13px] text-ink-soft">
-                A round is {Math.max(1, Math.round(state.round_secs / 60))} minute
-                {Math.max(1, Math.round(state.round_secs / 60)) === 1 ? "" : "s"}. When it ends,{" "}
-                <span className="text-ink">anyone</span> can ring the bell: the highest bidder
-                becomes the keeper and the contract installs a key on this account in their name.
+              <p className="mt-4 max-w-[48ch] text-[13px] text-ink-soft">
+                A round is {state.round_secs} seconds here so you can watch one end; a day on mainnet.
+                When it ends, <span className="text-ink">anyone</span> can ring the bell: the highest
+                bidder becomes the keeper and the contract installs a key on this account in their name.
               </p>
+              <Link
+                href="/act"
+                className="mt-5 inline-block border border-ink px-4 py-2 text-[11px] tracking-[0.16em] uppercase hover:bg-ink hover:text-paper"
+              >
+                take the seat from your browser →
+              </Link>
             </div>
 
             <div className="md:border-l md:rule md:pl-8">
@@ -84,12 +92,18 @@ export default function Home() {
               </p>
               <p className="mt-1 text-[13px] text-ink-soft">NEAR the keeper cannot spend</p>
               <p className="mt-5 text-[12px] leading-relaxed text-ink-faint">
-                The principal only grows. One grant leaves per round, capped at{" "}
-                <span className="text-ink-soft">{formatNear(state.grant_cap_yocto, 4)} NEAR</span> —
-                fixed at launch, with no method to raise it.
+                One grant leaves per round, and it is{" "}
+                <span className="text-ink-soft">{formatNear(state.grant_cap_yocto, 4)} NEAR</span> right now
+                — fixed at launch, not a share of the pool. A keeper who bid{" "}
+                {formatNear(state.high_bid_yocto, 3)} NEAR can hand out more than they paid, to somebody
+                other than themselves.
               </p>
             </div>
           </section>
+
+          <div className="mt-12">
+            <Asks asks={asks} />
+          </div>
 
           {/* the two powers */}
           <div className="mt-12 grid gap-10 pb-10 md:grid-cols-2 md:gap-14">
@@ -103,6 +117,10 @@ export default function Home() {
 
           <div className="mt-10">
             <Ledger keepers={keepers} grants={grants} />
+          </div>
+
+          <div className="mt-10">
+            <Donors donors={donors} />
           </div>
 
           <footer className="mt-14 border-t rule pt-6">

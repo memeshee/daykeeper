@@ -1,0 +1,6 @@
+# `cargo near build` sets --cfg near for you; a plain `cargo build` does not. Without it,
+# near-sdk-env compiles its panic path to Rust's abort, so every failed require! reaches the
+# chain as "WebAssembly trap: An `unreachable` opcode was executed" instead of the rule's own
+# sentence. Scoped to the wasm target so native unit tests keep the unit-testing host path.
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg", "near"]

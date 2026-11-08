@@ -14,5 +14,8 @@ const s = await view(CONTRACT, "get_state");
 printState(s);
 console.log("\naccess keys on the treasury:");
 for (const k of await accessKeys(CONTRACT)) {
-  console.log(`  ${k.public_key} → methods=${k.methods ?? "FULL ACCESS"} allowance=${k.allowance ?? "—"}`);
+  const scope = k.full
+    ? "FULL ACCESS"
+    : `methods=[${k.scoped?.methods?.join(",")}] allowance=${k.scoped?.allowance}`;
+  console.log(`  ${k.publicKey} → ${scope}`);
 }

@@ -2,16 +2,20 @@
 //! and whose power arrives as two scoped NEAR access keys that the contract can revoke.
 //!
 //! The whole mechanic lives here, in the contract. There is no admin key, no setter for
-//! the round length, the price step, the grant cap or the voice scope, and no scheduler:
+//! the round length, the price step, the grant size or the voice scope, and no scheduler:
 //! a Keeper's power expires because every privileged method re-checks `block_timestamp`
 //! against `round_end`.
 //!
 //! The two keys a Keeper receives:
-//!   * the GRANT key — receiver = this contract, methods = `grant` → one capped grant
+//!   * the GRANT key — receiver = this contract, methods = `grant` → one grant, this big
 //!   * the VOICE key — receiver = this contract, methods = `say`   → speak as the treasury
 //!
 //! A function-call key cannot attach NEAR, so neither key can move the pool. Only `grant`
-//! moves money, only once per round, and only up to the cap fixed at launch.
+//! moves money, only once per round, only up to `give` (fixed at launch), and only to
+//! somebody other than the keeper.
+//!
+//! The pool funds **asks**: anyone may post one for a fee that itself goes into the pool,
+//! and the keeper answers one per round. The grant records which ask it answered.
 
 use near_sdk::json_types::U128;
 use near_sdk::store::IterableMap;
@@ -21,6 +25,10 @@ use near_sdk::{env, near, require, AccountId, NearToken, Promise, PublicKey};
 /// writes (tens of Tgas), so 0.25 NEAR leaves generous headroom and is refunded to the
 /// treasury when the key is deleted at the end of the day.
 const KEEPER_KEY_ALLOWANCE: NearToken = NearToken::from_millinear(250);
+
+/// Posting an ask costs a small fee, and the fee goes into the pool: the queue funds the
+/// treasury it is asking. Storage for one ask is well under this.
+const ASK_FEE: NearToken = NearToken::from_millinear(10);
 
 /// Maximum history entries kept on chain, so views stay cheap forever.
 const MAX_HISTORY: u32 = 500;
@@ -44,6 +52,8 @@ pub struct GrantRecord {
     pub amount_yocto: U128,
     pub memo: String,
     pub at_ns: u64,
+    /// The ask this grant answered, when the keeper answered one.
+    pub ask_id: Option<u64>,
 }
 
 #[near(serializers = [json, borsh])]
@@ -53,6 +63,25 @@ pub struct VoiceRecord {
     pub text: String,
     pub at_ns: u64,
     pub round: u64,
+}
+
+#[near(serializers = [json, borsh])]
+#[derive(Clone)]
+pub struct AskRecord {
+    pub id: u64,
+    pub asker: AccountId,
+    pub text: String,
+    pub want_yocto: U128,
+    pub at_ns: u64,
+    pub round: u64,
+    pub funded_by: Option<AccountId>,
+}
+
+#[near(serializers = [json, borsh])]
+#[derive(Clone)]
+pub struct DonorRecord {
+    pub account: AccountId,
+    pub total_yocto: U128,
 }
 
 #[near(serializers = [json, borsh])]
@@ -72,13 +101,18 @@ pub struct StateView {
     pub grant_key: Option<PublicKey>,
     pub voice_key: Option<PublicKey>,
     pub keeper_grants_left: u32,
+    /// The most a keeper can give away today: min(give, pool).
     pub grant_cap_yocto: U128,
+    /// The absolute grant size fixed at launch.
+    pub give_yocto: U128,
     pub round_secs: u64,
     pub step_bps: u16,
-    pub cap_bps: u16,
     pub keepers: u32,
     pub grants: u32,
     pub voices: u32,
+    pub asks: u32,
+    pub open_asks: u32,
+    pub donors: u32,
 }
 
 #[near(contract_state)]
@@ -90,7 +124,7 @@ pub struct Daykeeper {
     round_secs: u64,
     price_floor: u128,
     step_bps: u16,
-    cap_bps: u16,
+    give: u128,
     high_bid: u128,
     high_bidder: Option<AccountId>,
     high_grant_key: Option<PublicKey>,
@@ -105,6 +139,11 @@ pub struct Daykeeper {
     grant_count: u32,
     voices: IterableMap<u64, VoiceRecord>,
     voice_count: u32,
+    asks: IterableMap<u64, AskRecord>,
+    ask_count: u32,
+    next_ask_id: u64,
+    donors: IterableMap<AccountId, u128>,
+    donor_count: u32,
 }
 
 /// `#[near(contract_state)]` requires `Default`, and an uninitialised contract would
@@ -119,11 +158,15 @@ impl Default for Daykeeper {
 #[near]
 impl Daykeeper {
     /// Parameters are fixed here, at launch, and there is no method that can change them.
+    ///
+    /// `give_yocto` is an absolute grant size, not a share of the pool. That is what makes
+    /// bidding rational: bidding 0.2 for the right to hand out 1.0 is a reason, bidding 0.2
+    /// for the right to hand out 0.05 is not.
     #[init]
-    pub fn new(round_secs: u64, price_floor_yocto: U128, step_bps: u16, cap_bps: u16) -> Self {
+    pub fn new(round_secs: u64, price_floor_yocto: U128, step_bps: u16, give_yocto: U128) -> Self {
         require!(round_secs >= 5, "round must last at least 5 seconds");
         require!(step_bps > 0 && step_bps <= 10_000, "step_bps out of range");
-        require!(cap_bps > 0 && cap_bps <= 5_000, "cap_bps must be 1..=5000 (0.01%..50%)");
+        require!(give_yocto.0 > 0, "the grant size must be positive");
         let now = env::block_timestamp();
         Self {
             treasury: env::current_account_id(),
@@ -133,7 +176,7 @@ impl Daykeeper {
             round_secs,
             price_floor: price_floor_yocto.0,
             step_bps,
-            cap_bps,
+            give: give_yocto.0,
             high_bid: 0,
             high_bidder: None,
             high_grant_key: None,
@@ -148,16 +191,34 @@ impl Daykeeper {
             grant_count: 0,
             voices: IterableMap::new(b"v"),
             voice_count: 0,
+            asks: IterableMap::new(b"a"),
+            ask_count: 0,
+            next_ask_id: 1,
+            donors: IterableMap::new(b"d"),
+            donor_count: 0,
         }
     }
 
-    /// Add to the pool and ask for nothing back.
+    /// Add to the pool and ask for nothing back. Donors are recorded, because giving in
+    /// public is the point.
     #[payable]
     pub fn donate(&mut self) {
         let amount = env::attached_deposit().as_yoctonear();
         require!(amount > 0, "donate something");
         self.pool += amount;
-        env::log_str(&format!("donate: {} yocto into the pool", amount));
+
+        let donor = env::predecessor_account_id();
+        let running = self.donors.get(&donor).copied().unwrap_or(0);
+        if running == 0 {
+            self.donor_count += 1;
+        }
+        self.donors.insert(donor.clone(), running + amount);
+        env::log_str(&format!(
+            "donate: {} yocto into the pool, {} in total from {}",
+            amount,
+            running + amount,
+            donor
+        ));
     }
 
     /// Bid for the next keepership.
@@ -195,6 +256,39 @@ impl Daykeeper {
         self.high_grant_key = grant_key;
         self.high_voice_key = voice_key;
         env::log_str(&format!("bid: {} at {} yocto", bidder, deposit));
+    }
+
+    /// Post a public ask. The fee is not a toll, it is a donation: it goes into the pool
+    /// the ask is asking. Anyone may post; the keeper answers one per round.
+    #[payable]
+    pub fn request(&mut self, text: String, want_yocto: U128) -> u64 {
+        let deposit = env::attached_deposit().as_yoctonear();
+        require!(
+            deposit >= ASK_FEE.as_yoctonear(),
+            &format!("posting an ask costs {} yocto", ASK_FEE.as_yoctonear())
+        );
+        require!(!text.is_empty() && text.len() <= 280, "say what you need in 280 characters");
+
+        self.pool += deposit;
+
+        let id = self.next_ask_id;
+        self.next_ask_id += 1;
+        let asker = env::predecessor_account_id();
+        self.asks.insert(
+            id,
+            AskRecord {
+                id,
+                asker: asker.clone(),
+                text: text.clone(),
+                want_yocto,
+                at_ns: env::block_timestamp(),
+                round: self.round,
+                funded_by: None,
+            },
+        );
+        self.ask_count += 1;
+        env::log_str(&format!("ask {} from {}: {}", id, asker, text));
+        id
     }
 
     /// Permissionless. Anyone may ring the bell once the round is over. It revokes the
@@ -274,8 +368,11 @@ impl Daykeeper {
     }
 
     /// Spend this round's grant. Callable only by the current Keeper's grant key, only
-    /// while their round is live, only once, and never above the cap fixed at launch.
-    pub fn grant(&mut self, recipient: AccountId, memo: String) {
+    /// while their round is live, only once, never above `give`, and never to themselves.
+    ///
+    /// Answer an ask by passing its id: the recipient must then be the asker, and the grant
+    /// records which ask it answered.
+    pub fn grant(&mut self, ask_id: Option<u64>, recipient: AccountId, memo: String) {
         let now = env::block_timestamp();
         let keeper = self.keeper.clone().expect("no keeper this round");
         // The keeper's key lives on THIS account, so the predecessor is always us. The
@@ -283,9 +380,21 @@ impl Daykeeper {
         self.require_signing_key(self.grant_key.clone(), "only the keeper's grant key may grant");
         require!(now < self.round_end_ns, "the keeper's day is over");
         require!(self.keeper_grants_left > 0, "this round's grant is already spent");
+        require!(recipient != keeper, "the keeper cannot name themselves");
 
         let cap = self.grant_cap();
         require!(cap > 0, "the pool cannot fund a grant yet");
+
+        if let Some(id) = ask_id {
+            let ask = self.asks.get(&id).cloned().unwrap_or_else(|| {
+                env::panic_str(&format!("no ask {}", id))
+            });
+            require!(ask.funded_by.is_none(), "that ask was already funded");
+            require!(ask.asker == recipient, "fund the ask by paying the account that asked");
+            if let Some(a) = self.asks.get_mut(&id) {
+                a.funded_by = Some(keeper.clone());
+            }
+        }
 
         self.keeper_grants_left -= 1;
         self.pool -= cap;
@@ -298,13 +407,20 @@ impl Daykeeper {
                 amount_yocto: U128(cap),
                 memo: memo.clone(),
                 at_ns: now,
+                ask_id,
             },
         );
         self.grant_count += 1;
         self.bump_keeper(|k| k.grants_made += 1);
 
         Promise::new(recipient.clone()).transfer(NearToken::from_yoctonear(cap)).detach();
-        env::log_str(&format!("grant: {} yocto to {} — {}", cap, recipient, memo));
+        env::log_str(&format!(
+            "grant: {} yocto to {}{} — {}",
+            cap,
+            recipient,
+            ask_id.map(|i| format!(" answering ask {}", i)).unwrap_or_default(),
+            memo
+        ));
     }
 
     /// Speak as the treasury with the voice key. Free, and limited only by the keeper's day.
@@ -355,12 +471,15 @@ impl Daykeeper {
             voice_key: self.voice_key.clone(),
             keeper_grants_left: self.keeper_grants_left,
             grant_cap_yocto: U128(self.grant_cap()),
+            give_yocto: U128(self.give),
             round_secs: self.round_secs,
             step_bps: self.step_bps,
-            cap_bps: self.cap_bps,
             keepers: self.keeper_count,
             grants: self.grant_count,
             voices: self.voice_count,
+            asks: self.ask_count,
+            open_asks: self.asks.iter().filter(|(_, a)| a.funded_by.is_none()).count() as u32,
+            donors: self.donor_count,
         }
     }
 
@@ -374,6 +493,20 @@ impl Daykeeper {
 
     pub fn get_voices(&self) -> Vec<VoiceRecord> {
         self.voices.iter().map(|(_, v)| v.clone()).collect()
+    }
+
+    pub fn get_asks(&self) -> Vec<AskRecord> {
+        self.asks.iter().map(|(_, v)| v.clone()).collect()
+    }
+
+    pub fn get_donors(&self) -> Vec<DonorRecord> {
+        let mut out: Vec<DonorRecord> = self
+            .donors
+            .iter()
+            .map(|(k, v)| DonorRecord { account: k.clone(), total_yocto: U128(*v) })
+            .collect();
+        out.sort_by(|a, b| b.total_yocto.0.cmp(&a.total_yocto.0));
+        out
     }
 
     pub fn is_keeper(&self, account_id: AccountId) -> bool {
@@ -426,8 +559,10 @@ impl Daykeeper {
         }
     }
 
+    /// The most a keeper may give today: the launch-fixed grant size, or the whole pool if
+    /// the pool is smaller than that.
     fn grant_cap(&self) -> u128 {
-        self.pool.saturating_mul(self.cap_bps as u128) / 10_000
+        self.give.min(self.pool)
     }
 
     fn trim_history(&mut self) {
@@ -448,6 +583,13 @@ impl Daykeeper {
         while self.voices.len() > MAX_HISTORY {
             if let Some(k) = self.voices.keys().next().copied() {
                 self.voices.remove(&k);
+            } else {
+                break;
+            }
+        }
+        while self.asks.len() > MAX_HISTORY {
+            if let Some(k) = self.asks.keys().next().copied() {
+                self.asks.remove(&k);
             } else {
                 break;
             }

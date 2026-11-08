@@ -17,7 +17,7 @@ const FUND = process.env.FUND || "7";
 const roundSecs = Number(process.env.ROUND_SECS || 60);
 const floorNear = process.env.PRICE_FLOOR || "0.1";
 const stepBps = Number(process.env.STEP_BPS || 1000); // +10% to outbid
-const capBps = Number(process.env.CAP_BPS || 500); // 5% of the pool per grant
+const giveNear = process.env.GIVE || "1"; // the absolute grant size, fixed at launch
 
 console.log(`treasury ${CONTRACT} (master ${MASTER})`);
 
@@ -59,7 +59,7 @@ try {
             round_secs: roundSecs,
             price_floor_yocto: parseNear(floorNear).toString(),
             step_bps: stepBps,
-            cap_bps: capBps,
+            give_yocto: parseNear(giveNear).toString(),
           }),
         ),
         50n * 10n ** 12n,
@@ -68,7 +68,7 @@ try {
     ],
   });
   console.log(
-    `  initialised round=${roundSecs}s floor=${floorNear} NEAR step=${stepBps}bps cap=${capBps}bps (${res.transaction_outcome.id})`,
+    `  initialised round=${roundSecs}s floor=${floorNear} NEAR step=${stepBps}bps give=${giveNear} NEAR (${res.transaction_outcome.id})`,
   );
 } catch (e) {
   console.log(`  init skipped: ${String(e.message || e).slice(0, 120)}`);

@@ -133,7 +133,10 @@ export async function account(accountId, secretKey) {
 }
 
 export async function call({ signerId, secretKey, receiverId = CONTRACT, method, args = {}, deposit = 0n, gas = 100n * 10n ** 12n }) {
-  const acct = await account(signerId, secretKey);
+  // fall back to the account's stored testnet credentials when no key is passed in, so
+  // callers that act as a normal account (an asker, a donor) do not have to read keys
+  const key = secretKey ?? credentials(signerId).secret;
+  const acct = await account(signerId, key);
   const out = await acct.signAndSendTransaction({
     receiverId,
     actions: [actionCreators.functionCall(method, Buffer.from(JSON.stringify(args)), gas, deposit)],
@@ -158,6 +161,6 @@ export function printState(s) {
   console.log(`  keeper       ${s.keeper ?? "vacant"}`);
   console.log(`  grant key    ${s.grant_key ?? "not issued"}`);
   console.log(`  voice key    ${s.voice_key ?? "not issued"}`);
-  console.log(`  grants left  ${s.keeper_grants_left} · cap ${fmtNear(s.grant_cap_yocto)} NEAR`);
-  console.log(`  keepers ${s.keepers} · grants ${s.grants} · voices ${s.voices}`);
+  console.log(`  grants left  ${s.keeper_grants_left} · grant ${fmtNear(s.grant_cap_yocto)} NEAR of ${fmtNear(s.give_yocto)} NEAR`);
+  console.log(`  keepers ${s.keepers} · grants ${s.grants} · voices ${s.voices} · asks ${s.open_asks} open of ${s.asks} · donors ${s.donors}`);
 }

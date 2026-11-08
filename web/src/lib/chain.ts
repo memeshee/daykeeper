@@ -7,7 +7,7 @@ export const CONTRACT =
 
 // Browsers need a CORS-friendly RPC. rpc.testnet.near.org refuses cross-origin reads, so
 // FastNear goes first and the others are fallbacks if a host is down or throttled.
-const RPC_HOSTS = [
+export const RPC_HOSTS = [
   process.env.NEXT_PUBLIC_NEAR_RPC,
   NETWORK === "mainnet" ? "https://free.rpc.fastnear.com" : "https://near-testnet.drpc.org",
   NETWORK === "mainnet" ? "https://rpc.mainnet.near.org" : "https://rpc.testnet.fastnear.com",
@@ -28,13 +28,18 @@ export type State = {
   grant_key: string | null;
   voice_key: string | null;
   keeper_grants_left: number;
+  /** the most the keeper may give today: min(give, pool) */
   grant_cap_yocto: string;
+  /** the absolute grant size, fixed at launch */
+  give_yocto: string;
   round_secs: number;
   step_bps: number;
-  cap_bps: number;
   keepers: number;
   grants: number;
   voices: number;
+  asks: number;
+  open_asks: number;
+  donors: number;
 };
 
 export type Keeper = {
@@ -59,6 +64,22 @@ export type Grant = {
   amount_yocto: string;
   memo: string;
   at_ns: number;
+  ask_id: number | null;
+};
+
+export type Ask = {
+  id: number;
+  asker: string;
+  text: string;
+  want_yocto: string;
+  at_ns: number;
+  round: number;
+  funded_by: string | null;
+};
+
+export type Donor = {
+  account: string;
+  total_yocto: string;
 };
 
 async function rpc<T>(body: unknown): Promise<T> {
@@ -162,4 +183,4 @@ export function explorerAccount(account: string) {
     : `https://testnet.nearblocks.io/address/${account}`;
 }
 
-export const socialUrl = (postId: string) => `https://near.social/#/near/widget/PostPage?accountId=${CONTRACT}&blockHeight=${postId}`;
+
