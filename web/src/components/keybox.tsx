@@ -1,7 +1,7 @@
 import { formatNear, short, shortKey } from "@/lib/chain";
 import type { State } from "@/lib/chain";
 
-const REPO = "https://github.com/PhiBao/daykeeper";
+const REPO = "https://github.com/memeshee/daykeeper";
 
 export function KeyBox({ state }: { state: State }) {
   const held = Boolean(state.keeper);

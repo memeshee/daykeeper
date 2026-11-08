@@ -142,7 +142,7 @@ export default function Home() {
               </a>
               <a
                 className="label hover:text-signal"
-                href="https://github.com/PhiBao/daykeeper"
+                href="https://github.com/memeshee/daykeeper"
                 target="_blank"
                 rel="noreferrer"
               >

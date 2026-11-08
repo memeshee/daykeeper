@@ -34,7 +34,7 @@ runs out, the bell gets rung, the keys install on the treasury — and then the 
 itself and the chain refuses in its own words.
 
 Try it yourself, nothing to install: https://daykeeper-tau.vercel.app/act
-Code: https://github.com/PhiBao/daykeeper
+Code: https://github.com/memeshee/daykeeper
 
 Built at NEAR HACKATHON @NEARProtocol #NEARHackathon @NearBuilders
 
