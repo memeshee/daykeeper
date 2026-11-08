@@ -9,6 +9,10 @@ day ends.** The key can speak and give. It cannot take.
 - Recorded run, every transaction linked: [`docs/demo-run.md`](docs/demo-run.md)
 - Product review and the reasoning behind the current design: [`docs/product-review.md`](docs/product-review.md)
 
+![Lifecycle of one round: bidding opens and raises the floor, the round clock ends and the bell is due, a settle installs two scoped keys on the seated keeper, the deadline deletes them and returns the treasury to bidding, and a no-bid settle installs no keys at all](docs/diagrams/daykeeper-day.png)
+
+*One round end to end. Open the larger version: [`docs/diagrams/daykeeper-day.html`](docs/diagrams/daykeeper-day.html).*
+
 ## The problem
 
 A treasury shared by strangers needs someone to decide who gets the money. A multisig needs a
@@ -174,3 +178,8 @@ much* someone may spend, by rules.
 Daykeeper decides *who holds the authority, what it costs, and when it ends* — and the ending is
 not a policy, it is a key the chain deletes. The auction is the allocation mechanism, the day is
 the term limit, and the scope is enforced by the protocol rather than by an `if` in a contract.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE). The contract, the scripts, the console and the diagrams are all
+under it; use them however you like.
