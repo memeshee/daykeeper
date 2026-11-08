@@ -1,0 +1,10 @@
+node_modules/
+.next/
+target/
+*.wasm
+.keeper-grant-*
+.keeper-voice-*
+.keeper-key-*
+.env
+.env.*
+.DS_Store

@@ -1,0 +1,27 @@
+{
+  "name": "daykeeper-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Daykeeper testnet CLI: deploy, bid, settle, grant, post — the judge path without a wallet.",
+  "scripts": {
+    "keys": "node scripts/keys.mjs",
+    "deploy": "node scripts/deploy.mjs",
+    "state": "node scripts/state.mjs",
+    "bid": "node scripts/bid.mjs",
+    "settle": "node scripts/settle.mjs",
+    "grant": "node scripts/grant.mjs",
+    "post": "node scripts/post.mjs",
+    "demo": "node scripts/demo.mjs"
+  },
+  "dependencies": {
+    "@near-js/accounts": "^2.5.1",
+    "@near-js/crypto": "^2.5.1",
+    "@near-js/keystores-node": "^2.5.1",
+    "@near-js/providers": "^2.5.1",
+    "@near-js/signers": "^2.5.1",
+    "@near-js/transactions": "^2.5.1",
+    "@near-js/types": "^2.5.1",
+    "@near-js/utils": "^2.5.1"
+  }
+}

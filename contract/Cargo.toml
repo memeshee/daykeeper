@@ -1,0 +1,22 @@
+[package]
+name = "daykeeper"
+version = "0.1.0"
+edition = "2021"
+description = "Daykeeper: a public treasury whose daily keeper is chosen by continuous auction, and whose power is a scoped, self-revoking NEAR key."
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = "5"
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+overflow-checks = true
+
+[dev-dependencies]
+near-sdk = { version = "5", features = ["unit-testing"] }
