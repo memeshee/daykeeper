@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daykeeper — the treasury and the two keys</title>
+  <style>
+    /* Product typefaces, inlined as base64 so the file is self-contained. */
+    __FONTS__
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper:        #f2eee4;
+      --paper-raised: #faf7ef;
+      --ink:          #191512;
+      --ink-soft:     #4a423b;
+      --ink-faint:    #857a6d;
+      --rule:         #d6cdba;
+      --signal:       #be3a26;
+      --sage:         #566b4d;
+      --gold:         #a98039;
+      --font-mono:    'IBM Plex Mono', ui-monospace, 'DejaVu Sans Mono', monospace;
+      --font-serif:   'Instrument Serif', Georgia, serif;
+    }
+
+    body {
+      font-family: var(--font-mono);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 960px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · one contract, two keys, no server</p>
+    <h1>The treasury hands out its own authority</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-labelledby="daykeeper-keys-title daykeeper-keys-desc">
+        <title id="daykeeper-keys-title">The Daykeeper contract, the two keys it installs on itself, and the only calls they can make</title>
+        <desc id="daykeeper-keys-desc">Component diagram: anyone can bid, post an ask, donate or ring the bell on the treasury contract. At the bell the contract adds two function-call keys to its own account. The grant key can call grant and nothing else, the voice key can call say and nothing else, and neither can attach NEAR. The grant pays whoever posted the ask.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#857a6d"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#be3a26"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f2eee4"/>
+
+        <!-- ─── connectors first, so every stroke sits behind the boxes ─── -->
+
+        <!-- anyone may call the open methods -->
+        <line x1="176" y1="190" x2="272" y2="190" stroke="#857a6d" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="176" y1="218" x2="272" y2="218" stroke="#857a6d" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- the contract installs both keys on its own account -->
+        <line x1="340" y1="300" x2="340" y2="380" stroke="#857a6d" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="540" y1="300" x2="540" y2="380" stroke="#857a6d" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- each key can call exactly one method back -->
+        <line x1="440" y1="380" x2="440" y2="300" stroke="#be3a26" stroke-width="1.3" marker-end="url(#arrow-accent)"/>
+        <line x1="600" y1="380" x2="600" y2="300" stroke="#857a6d" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- the grant pays the asker -->
+        <line x1="608" y1="190" x2="760" y2="190" stroke="#be3a26" stroke-width="1.3" marker-end="url(#arrow-accent)"/>
+
+        <!-- ─── labels, each on its own opaque mask ─── -->
+
+        <rect x="197" y="168" width="54" height="12" rx="2" fill="#f2eee4"/>
+        <text x="224" y="177" fill="#4a423b" font-size="8" font-weight="400" letter-spacing="0.06em"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">BID · ASK</text>
+
+        <rect x="197" y="196" width="54" height="12" rx="2" fill="#f2eee4"/>
+        <text x="224" y="205" fill="#4a423b" font-size="8" font-weight="400" letter-spacing="0.06em"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">SETTLE()</text>
+
+        <rect x="260" y="326" width="73" height="12" rx="2" fill="#f2eee4"/>
+        <text x="296" y="335" fill="#4a423b" font-size="8" font-weight="400" letter-spacing="0.06em"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">ADD GRANT KEY</text>
+
+        <rect x="448" y="350" width="40" height="12" rx="2" fill="#f2eee4"/>
+        <text x="468" y="359" fill="#be3a26" font-size="8" font-weight="400" letter-spacing="0.06em"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">GRANT()</text>
+
+        <rect x="548" y="326" width="73" height="12" rx="2" fill="#f2eee4"/>
+        <text x="584" y="335" fill="#4a423b" font-size="8" font-weight="400" letter-spacing="0.06em"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">ADD VOICE KEY</text>
+
+        <rect x="608" y="350" width="34" height="12" rx="2" fill="#f2eee4"/>
+        <text x="625" y="359" fill="#4a423b" font-size="8" font-weight="400" letter-spacing="0.06em"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">SAY()</text>
+
+        <rect x="645" y="168" width="78" height="12" rx="2" fill="#f2eee4"/>
+        <text x="684" y="177" fill="#4a423b" font-size="8" font-weight="400" letter-spacing="0.06em"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">PAYS THE ASKER</text>
+
+        <!-- ─── the contract ─── -->
+
+        <rect x="272" y="96" width="336" height="204" rx="6" fill="#faf7ef" stroke="#191512" stroke-width="1.2"/>
+        <text x="440" y="132" fill="#191512" font-size="12" font-weight="600"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">THE TREASURY</text>
+        <text x="440" y="150" fill="#857a6d" font-size="9" font-weight="400"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">commons.dk-dave.testnet</text>
+        <line x1="296" y1="166" x2="584" y2="166" stroke="#d6cdba" stroke-width="0.8"/>
+        <text x="310" y="190" fill="#4a423b" font-size="10" font-weight="400"
+              font-family="'IBM Plex Mono', monospace">bid() · settle()</text>
+        <text x="310" y="214" fill="#4a423b" font-size="10" font-weight="400"
+              font-family="'IBM Plex Mono', monospace">request() · donate()</text>
+        <text x="310" y="238" fill="#4a423b" font-size="10" font-weight="400"
+              font-family="'IBM Plex Mono', monospace">grant(ask_id, recipient) · say(text)</text>
+        <text x="310" y="272" fill="#857a6d" font-size="9" font-weight="400"
+              font-family="'IBM Plex Mono', monospace">one Rust file · no setters · no owner</text>
+
+        <!-- ─── outsiders, recessed and dashed ─── -->
+
+        <rect x="40" y="170" width="136" height="68" rx="6" fill="#f2eee4" stroke="#857a6d" stroke-width="1" stroke-dasharray="5,4"/>
+        <text x="108" y="200" fill="#191512" font-size="12" font-weight="600"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">ANYONE</text>
+        <text x="108" y="218" fill="#857a6d" font-size="9" font-weight="400"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">browser or script</text>
+
+        <rect x="760" y="170" width="160" height="68" rx="6" fill="#f2eee4" stroke="#857a6d" stroke-width="1" stroke-dasharray="5,4"/>
+        <text x="840" y="200" fill="#191512" font-size="12" font-weight="600"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">THE ASKER</text>
+        <text x="840" y="218" fill="#857a6d" font-size="9" font-weight="400"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">paid by the grant</text>
+
+        <!-- ─── the two keys the contract holds on itself ─── -->
+
+        <rect x="300" y="380" width="170" height="80" rx="6" fill="#faf7ef" stroke="#be3a26" stroke-width="1.4"/>
+        <text x="385" y="408" fill="#191512" font-size="12" font-weight="600"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">GRANT KEY</text>
+        <text x="385" y="426" fill="#857a6d" font-size="9" font-weight="400"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">function-call · grant only</text>
+        <text x="385" y="442" fill="#857a6d" font-size="9" font-weight="400"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">gas 0.25 · deleted at settle</text>
+
+        <rect x="510" y="380" width="170" height="80" rx="6" fill="#faf7ef" stroke="#4a423b" stroke-width="1"/>
+        <text x="595" y="408" fill="#191512" font-size="12" font-weight="600"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">VOICE KEY</text>
+        <text x="595" y="426" fill="#857a6d" font-size="9" font-weight="400"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">function-call · say only</text>
+        <text x="595" y="442" fill="#857a6d" font-size="9" font-weight="400"
+              font-family="'IBM Plex Mono', monospace" text-anchor="middle">same terms as grant</text>
+
+        <!-- ─── legend: horizontal strip at the bottom ─── -->
+
+        <line x1="40" y1="530" x2="920" y2="530" stroke="#d6cdba" stroke-width="0.8"/>
+        <text x="40" y="557" fill="#857a6d" font-size="8" font-weight="400" letter-spacing="0.14em"
+              font-family="'IBM Plex Mono', monospace">LEGEND</text>
+
+        <rect x="110" y="548" width="26" height="10" rx="2" fill="#faf7ef" stroke="#191512" stroke-width="1.2"/>
+        <text x="144" y="557" fill="#4a423b" font-size="8" font-family="'IBM Plex Mono', monospace">THE CONTRACT</text>
+
+        <rect x="230" y="548" width="26" height="10" rx="2" fill="#faf7ef" stroke="#be3a26" stroke-width="1.4"/>
+        <text x="264" y="557" fill="#4a423b" font-size="8" font-family="'IBM Plex Mono', monospace">THE KEY THAT GIVES</text>
+
+        <rect x="384" y="548" width="26" height="10" rx="2" fill="#faf7ef" stroke="#4a423b" stroke-width="1"/>
+        <text x="418" y="557" fill="#4a423b" font-size="8" font-family="'IBM Plex Mono', monospace">THE KEY THAT SPEAKS</text>
+
+        <rect x="540" y="548" width="26" height="10" rx="2" fill="#f2eee4" stroke="#857a6d" stroke-width="1" stroke-dasharray="5,4"/>
+        <text x="574" y="557" fill="#4a423b" font-size="8" font-family="'IBM Plex Mono', monospace">AN OUTSIDER</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

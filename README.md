@@ -102,26 +102,9 @@ node scripts/verify.mjs                                 # 12 invariant checks ag
 
 ## Architecture
 
-```
-                    ┌───────────────────────────────────────────────┐
-  anyone            │  commons.dk-dave.testnet (Rust / near-sdk 5)  │
-    │  request()    │                                               │
-    ├──────────────▶│  ask queue ← fees feed the pool               │
-    │  donate()     │                                               │
-    ├──────────────▶│  bid()    → refunds the outbid bidder         │
-    │  bid()        │  settle() → ANYONE: revoke keys, install new  │
-    ├──────────────▶│  grant()  → one, ≤ give, never to the keeper  │
-    │               │  say()    → gated on signer_account_pk()      │
-    │               └──────┬───────────────────────┬────────────────┘
-    │                      │ add_access_key(self)  │ delete_key(self)
-    │              ┌───────▼───────────────────────▼────────────────┐
-    │              │ two scoped keys, 0.25 NEAR gas allowance each  │
-    │              └───────┬───────────────────────┬────────────────┘
-    │                      │ grant key             │ voice key
-    │              ┌───────▼────────┐      ┌───────▼──────────────┐
-    └─ the record ─│ pay the asker  │      │ speak as the treasury │
-                   └────────────────┘      └──────────────────────┘
-```
+![Architecture: anyone can bid, post an ask, donate or ring the bell on the treasury; the treasury installs two function-call keys on its own account; each key can call exactly one method back; the grant pays whoever posted the ask](docs/diagrams/daykeeper-keys.png)
+
+*The contract, the two keys it installs on itself, and every call either of them can make. Larger: [`docs/diagrams/daykeeper-keys.html`](docs/diagrams/daykeeper-keys.html).*
 
 No backend, no cron, no keeper service. `contract/` is one Rust file with no setters; `scripts/`
 is the auditable CLI; `web/` is a Next.js page that reads the contract directly over public RPC
