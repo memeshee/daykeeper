@@ -42,9 +42,16 @@ If you held the seat for one day, what would you fund?
 
 ## Attach
 
-- the console screenshot (`docs/shot-console.png`) and the page (`docs/shot-home.png`), or the
-  demo video once recorded
+- the 2-minute demo video (`docs/daykeeper-demo.mp4`, also in `open-video-demo/videos/daykeeper/out/`)
+- `docs/shot-console.png` and `docs/shot-home.png` if you prefer stills
 - keep the hosted demo up past 18 Nov (rule Q-012)
+
+## Alt text for the video
+
+"A screen recording of Daykeeper on NEAR testnet. A browser mints two keys, gets a funded test
+account, bids 0.15 NEAR, waits for the round clock to run out, rings the bell, and becomes the
+keeper: the contract installs a grant key and a voice key on the treasury. The keeper then tries
+to pay itself and the chain refuses with the message: the keeper cannot name themselves."
 
 ## Before posting
 

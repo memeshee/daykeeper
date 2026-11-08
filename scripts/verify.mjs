@@ -5,7 +5,8 @@
 //   node scripts/verify.mjs
 //
 // What it checks:
-//   1. the contract answers views (it is initialised, not serving Default state)
+//   Twelve checks, and always twelve: none is skipped, so the count never depends on
+//   whether a keeper happens to be seated.
 //   2. launch parameters are non-zero and in range — the contract has no setter for them
 //   3. the pool is backed: the account's balance covers the pool plus the code bond
 //   4. the two installed keeper keys have exactly the scopes the contract promises
@@ -58,33 +59,30 @@ const scoped = keys.filter((k) => !k.full);
 const scopedGrant = scoped.find((k) => k.scoped?.methods?.includes("grant"));
 const scopedVoice = scoped.find((k) => k.scoped?.methods?.includes("say"));
 
-if (s.keeper) {
-  check(
-    "the seated keeper's grant key is installed with the grant scope",
-    !!scopedGrant && scopedGrant.publicKey === s.grant_key,
-    scopedGrant ? `${scopedGrant.publicKey.slice(0, 18)}… → [${scopedGrant.scoped.methods}]` : "no grant-scoped key",
-  );
-  check(
-    "the seated keeper's voice key is installed with the say scope",
-    !!scopedVoice && scopedVoice.publicKey === s.voice_key,
-    scopedVoice ? `${scopedVoice.publicKey.slice(0, 18)}… → [${scopedVoice.scoped.methods}]` : "no say-scoped key",
-  );
-  check(
-    "neither scoped key can call anything else",
-    scoped.every((k) => {
-      const m = k.scoped?.methods ?? [];
-      return (m.includes("grant") || m.includes("say")) && m.every((x) => x === "grant" || x === "say");
-    }),
-    scoped.map((k) => `[${k.scoped?.methods}]`).join(" "),
-  );
-  check(
-    "score scoped keys point at this contract only",
-    scoped.every((k) => k.scoped?.receiver === CONTRACT),
-    CONTRACT,
-  );
-} else {
-  check("no keeper is seated and no scoped key is left behind", scoped.length === 0, `${scoped.length} scoped key(s) on the account`);
-}
+// 4. the account actually carries the scopes the contract says it installed
+const seated = !!s.keeper;
+const grantOk = scopedGrant && scopedGrant.publicKey === s.grant_key;
+const voiceOk = scopedVoice && scopedVoice.publicKey === s.voice_key;
+check(
+  seated ? "the seated keeper's two keys are installed on the account" : "no keeper is seated and no scoped key is left behind",
+  seated ? Boolean(grantOk && voiceOk) : scoped.length === 0,
+  seated
+    ? `grant ${scopedGrant ? `[${scopedGrant.scoped.methods}]` : "missing"} · voice ${scopedVoice ? `[${scopedVoice.scoped.methods}]` : "missing"}`
+    : `${scoped.length} scoped key(s) on the account`,
+);
+check(
+  "no scoped key can call anything except grant or say",
+  scoped.every((k) => {
+    const m = k.scoped?.methods ?? [];
+    return m.length > 0 && m.every((x) => x === "grant" || x === "say");
+  }),
+  scoped.length ? scoped.map((k) => `[${k.scoped?.methods}]`).join(" ") : "none installed",
+);
+check(
+  "every scoped key points at this contract only",
+  scoped.every((k) => k.scoped?.receiver === CONTRACT),
+  scoped.length ? CONTRACT : "none installed",
+);
 
 // 5-6. history obeys the rules it claims
 const grants = await view(CONTRACT, "get_grants");

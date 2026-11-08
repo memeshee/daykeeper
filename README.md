@@ -60,6 +60,15 @@ The keeper answers one ask per day, and the grant records which ask it answered.
 This is why the seat is worth holding: not "fund anyone", but "choose, today, out of what
 people actually asked for".
 
+## Demo video
+
+Two minutes, screen-recorded from the live deployment, narrated: the pool, a browser taking the
+seat with client-minted keys, the clock running out, the bell, the keys installed on the treasury,
+and the chain refusing the keeper's attempt to pay itself.
+
+`docs/daykeeper-demo.mp4` — rendered from [`open-video-demo`](https://github.com/PhiBao/open-video-demo);
+the story and scene list live in that repo under `videos/daykeeper/`.
+
 ## Try it
 
 Hosted, no install: **https://daykeeper-tau.vercel.app/act**
@@ -84,7 +93,7 @@ node scripts/grant.mjs .keeper-grant-dk-alice.testnet --ask 1 "…"
 node scripts/refuse.mjs .keeper-grant-dk-alice.testnet .keeper-voice-dk-alice.testnet
 node scripts/demo.mjs                                   # the whole story; exits non-zero on any deviation
 node scripts/keeper-agent.mjs                           # a keeper that is not a person
-node scripts/verify.mjs                                 # 13 invariant checks against the live chain; exit 0
+node scripts/verify.mjs                                 # 12 invariant checks against the live chain; exit 0
 ```
 
 ## Architecture
@@ -116,7 +125,7 @@ and can sign in the browser.
 
 ## Verification
 
-- `node scripts/verify.mjs` → **13 checks against the live chain**, exit 0. Re-reads the
+- `node scripts/verify.mjs` → **12 checks against the live chain**, exit 0. Re-reads the
   contract, the account's installed key scopes and the whole grant history, and fails if any
   claim in this README does not hold.
 - `cargo test --target x86_64-unknown-linux-gnu` → **18 tests**, each refusal asserted verbatim.
@@ -136,7 +145,7 @@ entirely from a browser.
 
 **Deliberately constrained:** launch parameters are immutable — changing the round length or
 `give` means a new deployment, because a treasury with an admin key is a treasury with an admin.
-Rounds are 90 seconds here so a judge can watch one end; a day on mainnet.
+Rounds are 30 seconds here so a judge can watch one end; a day on mainnet.
 
 **Not built:** the voice writes to contract state. On mainnet the same key shape points at
 near.social's `social` account, which does not exist on testnet — a mainnet seam, not a claim.

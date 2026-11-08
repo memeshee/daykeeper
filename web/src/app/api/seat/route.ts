@@ -17,10 +17,11 @@ const FUND_NEAR = Number(process.env.DAYKEEPER_FAUCET_FUND || "1.5");
 
 // best effort only: serverless instances do not share this map, and it is not a security
 // boundary. The real boundary is the master account's balance.
-const recent = new Map<string, number>();
+const recent = new Map<string, number[]>();
 const PER_IP_MS = 10 * 60 * 1000;
+const PER_IP_MAX = 3; // a judge, a demo recorder and a curious friend can share one IP
 let created = 0;
-const MAX_PER_INSTANCE = 12;
+const MAX_PER_INSTANCE = 40;
 
 async function rpc(method: string, params: unknown) {
   const res = await fetch(RPC, {
@@ -45,10 +46,14 @@ export async function POST(req: Request) {
 
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-  const last = recent.get(ip);
-  if (last && Date.now() - last < PER_IP_MS) {
+  const now = Date.now();
+  const hits = (recent.get(ip) ?? []).filter((t) => now - t < PER_IP_MS);
+  if (hits.length >= PER_IP_MAX) {
+    const waitMins = Math.max(1, Math.ceil((PER_IP_MS - (now - hits[0])) / 60000));
     return NextResponse.json(
-      { error: "this address already took one seat account; paste your own key or wait" },
+      {
+        error: `this address already took ${PER_IP_MAX} seat accounts; try again in about ${waitMins} minute${waitMins === 1 ? "" : "s"}, or paste your own testnet key below`,
+      },
       { status: 429 },
     );
   }
@@ -90,7 +95,7 @@ export async function POST(req: Request) {
         actionCreators.addKey(PublicKey.fromString(publicKey), actionCreators.fullAccessKey()),
       ],
     });
-    recent.set(ip, Date.now());
+    recent.set(ip, [...hits, Date.now()]);
     created += 1;
     return NextResponse.json({
       accountId,

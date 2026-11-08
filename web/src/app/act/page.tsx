@@ -290,6 +290,7 @@ export default function Act() {
               </p>
             </div>
             <button
+              id="bell"
               onClick={ringTheBell}
               disabled={busy !== null || !store?.account}
               className="border border-signal px-4 py-2 text-[11px] tracking-[0.16em] uppercase text-signal hover:bg-signal hover:text-paper disabled:opacity-40"
@@ -318,6 +319,7 @@ export default function Act() {
                   browser.
                 </p>
                 <button
+                  id="mint-keys"
                   onClick={mintKeys}
                   disabled={busy !== null}
                   className="mt-4 border border-ink px-4 py-2 text-[11px] tracking-[0.16em] uppercase hover:bg-ink hover:text-paper disabled:opacity-40"
@@ -372,6 +374,7 @@ export default function Act() {
                     A bid costs NEAR, so you need a funded testnet account. Two ways, both fine:
                   </p>
                   <button
+                    id="faucet"
                     onClick={takeFaucetAccount}
                     disabled={busy !== null}
                     className="border border-ink px-4 py-2 text-[11px] tracking-[0.16em] uppercase hover:bg-ink hover:text-paper disabled:opacity-40"
@@ -427,6 +430,7 @@ export default function Act() {
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <input
+                  id="bid-amount"
                   value={bid}
                   onChange={(e) => setBid(e.target.value)}
                   placeholder={`min ${minBid}`}
@@ -435,6 +439,7 @@ export default function Act() {
                 />
                 <span className="label">NEAR</span>
                 <button
+                  id="bid-submit"
                   onClick={placeBid}
                   disabled={busy !== null}
                   className="ml-2 border border-ink px-4 py-2 text-[11px] tracking-[0.16em] uppercase hover:bg-ink hover:text-paper disabled:opacity-40"
@@ -555,6 +560,7 @@ export default function Act() {
                       send the pool to myself
                     </button>
                     <button
+                      id="grant-self"
                       onClick={trySelfGrant}
                       disabled={busy !== null || !iHoldGrant || state?.keeper_grants_left === 0}
                       className="border border-signal px-3 py-1 text-[10px] tracking-[0.12em] uppercase text-signal hover:bg-signal hover:text-paper disabled:opacity-40"

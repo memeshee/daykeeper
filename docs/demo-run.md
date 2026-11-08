@@ -1,14 +1,14 @@
 # Daykeeper — the recorded run
 
-Contract: `commons.dk-dave.testnet` (testnet) · 2026-11-08T16:35:32.917Z
+Contract: `commons.dk-dave.testnet` (testnet) · 2026-11-08T17:25:58.670Z
 
 Every line with a link is a real transaction. This script exits non-zero if any expected
 result does not happen, so `node scripts/demo.mjs` is itself the claim.
 
 ## 1. A public treasury, and a public ask
-Someone donates 2 NEAR → https://testnet.nearblocks.io/txns/5REn9aFfNSckPf3N5AEFQM9i2Sk5u79Bi2kmbv5whH39
-dk-erin.testnet asks for 0.3 NEAR → https://testnet.nearblocks.io/txns/7e1wzMg4HesiGdf6gr7TSDHM5j15ZzWnuCegvMRUHvn7
-dk-chen.testnet asks for 1.5 NEAR → https://testnet.nearblocks.io/txns/GZdPbL5E7wN4xuer8MMiBMY1V1keRiifx5vubtqtRAZq
+Someone donates 2 NEAR → https://testnet.nearblocks.io/txns/LTmRD4YQeP33M8G7yCsZafFnRrEKt9umfvRRTZBYT1h
+dk-erin.testnet asks for 0.3 NEAR → https://testnet.nearblocks.io/txns/Fi3bXqKVsygVfoPDvxFb5mMrBB97GmM97rtjBft6qrwH
+dk-chen.testnet asks for 1.5 NEAR → https://testnet.nearblocks.io/txns/4r1fJ5Yb6e1mdZUoZwgXi5YRZ7Bk5LGBGmnxQCWVkPyB
 
 Pool: **2.02 NEAR** — the two ask fees are already in it.
 Open asks: 2. The keeper can give at most **1 NEAR** today.
@@ -16,10 +16,10 @@ Open asks: 2. The keeper can give at most **1 NEAR** today.
 ## 2. The auction — bidding for the right to give
 (waiting out round 1 so the auction starts clean)
 Round open. Bidders mint two keys each, locally; only the public halves go on chain.
-  dk-alice.testnet bids 0.12 NEAR → https://testnet.nearblocks.io/txns/9DB6JMXFpEiLXbnYYbvbzxvdPbnxeLQNHet3jkCrVWT1
-  dk-bruno.testnet bids 0.15 NEAR → https://testnet.nearblocks.io/txns/9r7rMCS27m2gDmYkxuyegJHG7fHqRP47njajBbsh9wEV
+  dk-alice.testnet bids 0.12 NEAR → https://testnet.nearblocks.io/txns/AwhGeD6qYJcfL3SmvSV99tpdYH52hV2VNJNeUwqkgd2S
+  dk-bruno.testnet bids 0.15 NEAR → https://testnet.nearblocks.io/txns/5cZ7y1B4WvKhxvaVnWzPBJzSr6bvnh2S3KtPAvoiT3pc
   → bruno's bid refunded alice automatically, in the same transaction
-  dk-alice.testnet bids 0.2 NEAR → https://testnet.nearblocks.io/txns/4WjWkm4x2wKbG48KLq4o3g1moPvurY7dZN7Nku6gj1d3
+  dk-alice.testnet bids 0.2 NEAR → https://testnet.nearblocks.io/txns/Bg7kUDEbHfijMqLkgdDru7mCnJEcDLedRtFv4wSMZqjJ
   → alice's second bid refunded bruno
 
 Leading: **dk-alice.testnet** at 0.2 NEAR · minimum next bid 0.22 NEAR
@@ -31,10 +31,10 @@ Waiting for the clock (no server, no cron — the round ends because time passes
 Round 2 is over. Anyone may ring the bell.
 
 ## 3. The handover
-dk-dave — a stranger with no stake in the outcome — rings the bell → https://testnet.nearblocks.io/txns/DPdXvbDufjm1XrbDLVaXwwuPatPvoyWAStPrMq52xUkG
+dk-dave — a stranger with no stake in the outcome — rings the bell → https://testnet.nearblocks.io/txns/HrSFsnfwH9RUmdLcjFQhQSPGnF3QjrgMyFkSXrGS4HMW
 Keeper: **dk-alice.testnet**
-Grant key installed on the treasury: `ed25519:HytqzSM2BCBGGENV4ceEyVGTTGbDbq5cmRSFZBK7cdf` (methods: grant)
-Voice key installed on the treasury: `ed25519:7oFyUUifrFoFyeW9KF81dZBDSGfdkAkNeEFoUcp3ePKr` (methods: say)
+Grant key installed on the treasury: `ed25519:DkkyTHAzoL1uqqxDy5vx1M14RSu5DbacyLf793qirj1T` (methods: grant)
+Voice key installed on the treasury: `ed25519:FgG5ZzpNNLCa4XMAZ4HXRXcwNiJ78F9hfVnNLgSNMEwT` (methods: say)
 Neither key can attach NEAR, so neither key can move the pool.
 
 ## 4. The control run — what a keeper cannot do
@@ -59,19 +59,19 @@ Neither key can attach NEAR, so neither key can move the pool.
 **6/6 refused by the chain.**
 
 ## 5. The two powers, used with no wallet and no NEAR of the keeper's own
-The keeper speaks as the treasury → https://testnet.nearblocks.io/txns/6ZJTCDxtmNQavwfKFi7tPh5pWXbDhRTKrVEyrEwmMhdU
-The keeper answers ask #1 by paying dk-erin.testnet 1 NEAR → https://testnet.nearblocks.io/txns/AepEAfQSB6sXwBVvcHSV4KA79oeRSSgVmzwDv8o4JT4B
+The keeper speaks as the treasury → https://testnet.nearblocks.io/txns/6bGAvoHRMaymYBCHVBGreuDjL4QWQZKw3zXuXAtbhHu9
+The keeper answers ask #1 by paying dk-erin.testnet 1 NEAR → https://testnet.nearblocks.io/txns/H57tfjH8fMNgBygHQcb7LMdAbwBWwnvgXpq4hqRkomrD
 Grants left this round: 0. Pool: 1.22 NEAR. Open asks: 1.
 - refused: **a second grant in the same round**
   `Smart contract panicked: this round's grant is already spent`
 
 ## 6. The day ends and the key stops existing
-The bell again → https://testnet.nearblocks.io/txns/Hdw2YLharmx3AsJmUw2VKvydHr8FtRYqXAujEyYmKRiB
+The bell again → https://testnet.nearblocks.io/txns/J74tBg4gJoNFSaFj5ZCMQe999X6s1dP6x92zKKj6mX2V
 Alice's keys are deleted from the treasury. Keeper: vacant · keys: none / none
 Pool: 1.22 NEAR · keepers: 1 · grants: 1 · words: 1 · donors recorded: 1
 
 - refused: **the keeper's key after the day ended**
-  `Can't complete the action because access key ed25519:HytqzSM2BCBGGENV4ceEyVGTTGbDbq5cmRSFZBK7cdf doesn't exist`
+  `Can't complete the action because access key ed25519:DkkyTHAzoL1uqqxDy5vx1M14RSu5DbacyLf793qirj1T doesn't exist`
 
 ## Result
 Every claim above held: **exit 0**.
