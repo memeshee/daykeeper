@@ -137,6 +137,12 @@ Environment: `DAYKEEPER_CONTRACT`, `NEAR_NETWORK`, `NEAR_RPC` (scripts) and
 `NEXT_PUBLIC_DAYKEEPER_CONTRACT`, `NEXT_PUBLIC_NEAR_NETWORK`, `NEXT_PUBLIC_NEAR_RPC` (web).
 Launch parameters are set at deploy: `ROUND_SECS`, `PRICE_FLOOR`, `STEP_BPS`, `CAP_BPS`.
 
+## Screenshots
+
+- `docs/shot-desktop.png` — a live round: 3.04 NEAR pool, a leading bid, the two powers, the
+  treasury's recorded words and the ledger.
+- `docs/shot-mobile.png` — the same page at 414px.
+
 ## What a judge should try first
 
 1. Open the page. Everything on it comes from the contract.
