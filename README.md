@@ -13,6 +13,8 @@ day ends.** The key can speak and give. It cannot take.
 
 *One round end to end. Open the larger version: [`docs/diagrams/daykeeper-day.html`](docs/diagrams/daykeeper-day.html).*
 
+Drawn as phases for readability; in the contract they overlap. There is one clock, `round_end_ns`: the moment `settle()` seats a keeper it starts the next round, so bidding for tomorrow runs *while* today's keeper still holds the keys. At that same instant the keeper's `grant` and `say` start refusing with `the keeper's day is over`, and the keys are deleted from the account at the next `settle`.
+
 ## The problem
 
 A treasury shared by strangers needs someone to decide who gets the money. A multisig needs a
