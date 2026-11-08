@@ -124,14 +124,6 @@ export default function Home() {
               </a>
               <a
                 className="label hover:text-signal"
-                href={`https://near.social/#/near/widget/ProfilePage?accountId=${CONTRACT}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                the treasury on near.social ↗
-              </a>
-              <a
-                className="label hover:text-signal"
                 href="https://github.com/PhiBao/daykeeper"
                 target="_blank"
                 rel="noreferrer"
