@@ -39,8 +39,9 @@ Grants left this round: 0. Pool is now 3.04 NEAR.
 - refused: **voice key sends NEAR out** — function-call keys cannot attach NEAR
   `The transaction contains more then one action, but it was signed with an access key which allows transaction to apply only one specific action. To apply more th`
 - refused: **grant key calls donate** — only the scoped method name is allowed
-  `{}`
-- refused: **outsider calls grant** — the predecessor is not the keeper
+  `{}` (the SDK returns an empty ActionError here; the same scope rule refused it, and
+  `refuse.mjs` now digs the real sentence out of the error kind)
+- refused: **outsider calls grant** — the signer key is not the keeper's grant key
   `{"index":0,"kind":{"index":0,"kind":{"FunctionCallError":{"ExecutionError":"WebAssembly trap: An `unreachable` opcode was executed."}}}}`
 
 **5/5 refused by the chain.**
@@ -49,3 +50,7 @@ Grants left this round: 0. Pool is now 3.04 NEAR.
 The bell again → https://testnet.nearblocks.io/txns/6LX6oL4UZDFLSzfLccM82staLpjfKgZKSrdeWNqxraXf
 Alice's keys are deleted from the treasury. Keeper now: vacant · keys: none / none
 Pool: 3.04 NEAR · keepers so far: 1 · grants: 1 · words: 1
+
+---
+
+*Annotation corrected after the run: the contract decides identity from the signing key (`env::signer_account_pk()`), not from the predecessor account, so the fifth line above originally mislabelled the refusal. Every transaction hash is untouched.*
